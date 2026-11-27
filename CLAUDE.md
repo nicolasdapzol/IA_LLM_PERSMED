@@ -129,7 +129,7 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
   - examens : variables de services diagnostiques (biologie, `EKG`, tests, imagerie).
 - **Variables exclues des vignettes** : tout ce qui révèle l'issue ou l'hospitalisation (`ADMIT`, `ADMTPHYS`, `LOS`, `HDDIAG*`, `HDSTAT`, `ADISP`, `OBSSTAY`, `STAY24`, `BOARDED`, `LOV`) et les variables d'issue de la visite, ainsi que les gestes, médicaments, intervenants et variables du service (non retenus par le groupe).
 - **Choix assumé à justifier dans le rapport** : les diagnostics du médecin et les examens sont enregistrés pendant ou à la fin de la visite ; les inclure rend la tâche plus facile que celle d'un médecin au moment de la décision. Le dire explicitement dans les limites.
-- **Définition de la décision réelle (vérité terrain)** : « hospitalisation » = `ADMITHOS` **ou** `OBSHOS` (observation puis hospitalisation) **ou** transfert vers un autre hôpital (`TRANOTH`, `TRANPSYC`). Les autres issues (sortie, retour en maison de retraite `TRANNH`, départ avant la fin des soins, décès...) = « non hospitalisation » ou à exclure ; **règle exacte pour ces cas à confirmer**.
+- **Définition de la décision réelle (vérité terrain)** : « hospitalisation » = `ADMITHOS` **ou** `OBSHOS` (observation puis hospitalisation) **ou** transfert vers un autre hôpital (`TRANOTH`, `TRANPSYC`) (confirmé par le groupe). `TRANNH` (retour ou transfert en maison de retraite) n'est pas un transfert au sens de cette définition. Les issues ambiguës sont exclues (voir « Décisions complémentaires »).
 - Conditions d'usage du fichier : usage statistique uniquement, pas de ré-identification, pas de croisement avec d'autres données identifiables ; les poids (`PATWT`) sont nécessaires pour des estimations nationales (à mentionner dans le rapport).
 
 ## Décisions complémentaires (27 nov 2026)
@@ -140,6 +140,5 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 
 ## Points à préciser (ne pas deviner)
 
-- Confirmer que « transfert » désigne bien `TRANOTH` et `TRANPSYC`, et que `TRANNH` (retour ou transfert en maison de retraite) n'en fait pas partie.
 - Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.
 - Noms de colonnes réels du fichier 2022 (vérifier avec `df.columns` après téléchargement).

@@ -104,10 +104,21 @@ Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater
 
 Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrable avec des données provisoires) ; 5 dépend des décisions de l'étape 0 (métrique, vérité terrain, règle du vote).
 
+## Décisions de cadrage (27 nov 2026)
+
+- **Décision du LLM : binaire**, hospitaliser / ne pas hospitaliser.
+- **Vérité terrain : la décision réelle enregistrée dans NHAMCS.**
+- **Vote majoritaire : sur les 24 personas.** (Règle d'égalité : voir « Points à préciser ».)
+- **Variabilité entre personas, mesurée par** :
+  - le désaccord par vignette ;
+  - l'accord global entre personas ;
+  - l'écart de chaque persona aux contrôles (persona neutre et 5 aléatoires) ;
+  - le taux d'hospitalisation par persona (et l'effet de chaque facteur : expérience, spécialité, objectif).
+  Les formules exactes restent à fixer avant l'étape 5.
+
 ## Points à préciser (ne pas deviner)
 
-- Source exacte des données NHAMCS (fichier, année, variables utilisées).
-- Définition précise de la « décision » (hospitalisation oui/non, ou plusieurs classes ?).
-- Métrique(s) de variabilité retenue(s).
-- Référence (« vérité terrain ») pour évaluer la performance, et règle du vote majoritaire (toutes les personas ou un sous-ensemble, gestion des égalités).
+- Source exacte des données NHAMCS (fichier, année, variables utilisées, variable de décision réelle).
+- Règle d'égalité du vote majoritaire (24 personas : une égalité 12–12 est possible).
+- Formules exactes des métriques de variabilité (par ex. désaccord = proportion de personas hors majorité, ou entropie).
 - Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.

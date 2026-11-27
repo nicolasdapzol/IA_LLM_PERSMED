@@ -108,7 +108,7 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 
 - **Décision du LLM : binaire**, hospitaliser / ne pas hospitaliser.
 - **Vérité terrain : la décision réelle enregistrée dans NHAMCS.**
-- **Vote majoritaire : sur les 24 personas.** (Règle d'égalité : voir « Points à préciser ».)
+- **Vote majoritaire : sur les 24 personas.** En cas d'égalité (12–12), on retient « hospitaliser » (décision prudente). Compter et rapporter le nombre d'égalités.
 - **Variabilité entre personas, mesurée par** :
   - le désaccord par vignette ;
   - l'accord global entre personas ;
@@ -119,6 +119,5 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 ## Points à préciser (ne pas deviner)
 
 - Source exacte des données NHAMCS (fichier, année, variables utilisées, variable de décision réelle).
-- Règle d'égalité du vote majoritaire (24 personas : une égalité 12–12 est possible).
 - Formules exactes des métriques de variabilité (par ex. désaccord = proportion de personas hors majorité, ou entropie).
 - Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.

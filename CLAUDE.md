@@ -54,6 +54,7 @@ Mesurer à quel point la décision d'un LLM « médecin » (hospitaliser ou non 
 pip install -r requirements.txt
 pytest                                        # tests unitaires
 python -m src.data --config config/experiment.yaml   # vignettes -> data/vignettes.jsonl (+ compte rendu, relecture)
+python -m src.personas --config config/experiment.yaml   # 24 personas vérifiées -> results/personas_preview.md
 python -m src.inference --n 20 --out results/smoke   # test rapide sur petit échantillon
 python -m src.inference --n 2000 --out results/full  # run complet
 python -m src.analysis --in results/full             # métriques et figures
@@ -96,6 +97,7 @@ Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater
 - [x] **1. Données** (28 nov – 1 déc) : NHAMCS, variables, vignettes, échantillon d'environ 2000 cas, vérification manuelle sur une dizaine
   - 27 nov : `src/data.py` + tests ; 2000 vignettes (1000/1000) générées. Libellés CIM-10-CM : fichier CDC `icd10cm_order_2022.txt` à placer dans `data/raw/icd10cm/` (URL dans `config/experiment.yaml`). Relecture manuelle des 10 vignettes de `data/manual_check.md` : validée (27 nov). PR : nicolasdapzol/IA_LLM_PERSMED#1. Limite : 123 libellés RFV sont tronqués (« ... ») dans le fichier Stata comme dans les formats SAS officiels.
 - [ ] **2. Personas** (28 nov – 2 déc, en parallèle de 1) : sources, 18 factorielles + 1 neutre + 5 aléatoires, génération des prompts
+  - 27 nov : blocs validés (`report/personas_blocks_draft.md`), inscrits dans `config/personas.yaml` ; `src/personas.py` + tests ; identités non médicales tirées (graine 42) : police officer, auctioneer, accountant, scientist, collector. Reste : vérification des 12 références par le groupe (champ `verified_by`, liste dans `report/personas_sources_candidates.md`).
 - [ ] **3. Inférence et parsing** (2–5 déc) : MedGemma, reprise sur crash, sortie JSON stricte, test de fumée sur 20 vignettes ; mesurer le temps par appel
 - [ ] **4. Run complet** (5–8 déc) : 2000 × 24, en local ou sur Colab ; réduire l'échantillon avant de lancer si le temps estimé est trop long
 - [ ] **5. Analyse** (8–10 déc) : variabilité entre personas (priorité), performance de chaque persona isolée, puis en vote majoritaire ; figures régénérables
@@ -140,6 +142,15 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 - **Issues ambiguës : exclues du jeu de vignettes** (`LWBS`, `LBTC`, `LEFTAMA`, `DOA`, `DIEDED`, `OTHDISP`, et valeurs manquantes sur les variables d'issue). Compter et rapporter le nombre de visites exclues.
 - **Tirage : échantillon stratifié 50/50**, soit environ 1000 vignettes « hospitalisation » et 1000 « non hospitalisation » (graine dans `config/experiment.yaml`, poids non utilisés). Conséquences à écrire dans le rapport : la prévalence de l'échantillon n'est pas celle de la réalité ; la référence naïve est 50 % ; utiliser des métriques adaptées (sensibilité, spécificité, exactitude équilibrée) plutôt que la seule exactitude.
 - **Désaccord par vignette** (métrique de variabilité principale) : pour une vignette, soit `p` la proportion des 24 personas qui répondent « hospitaliser » ; **désaccord = min(p, 1 − p)** (proportion de personas hors de la majorité, entre 0 et 0,5). L'accord global (kappa de Fleiss), l'écart aux contrôles et le taux d'hospitalisation par persona restent des mesures complémentaires.
+
+## Décisions sur les personas (27 nov 2026)
+
+- **Construction par blocs** : une persona factorielle = phrase « expérience » + phrase « spécialité » + phrase « objectif ». Deux personas voisines ne diffèrent que d'un bloc. 8 blocs à rédiger et sourcer (2 + 3 + 3).
+- **Contrôle neutre = aucune persona** : le prompt contient seulement la consigne commune et la vignette.
+- **5 personas aléatoires = identités non médicales** (par exemple enseignant, cuisinier), pour mesurer l'effet d'une persona sans compétence médicale.
+- **Sortie du modèle : décision seule**, en JSON (`hospitalize` / `do_not_hospitalize`), sans justification.
+- **Langue : anglais**, comme les vignettes.
+- **Sources** : Claude propose des références candidates (avec lien ou DOI et passage justificatif) ; le groupe vérifie chacune avant de l'inscrire dans `config/personas.yaml`.
 
 ## Consignes du cours (source : `report/consignes.md`, résumé)
 

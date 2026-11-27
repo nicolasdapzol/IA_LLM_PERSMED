@@ -116,8 +116,26 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
   - le taux d'hospitalisation par persona (et l'effet de chaque facteur : expérience, spécialité, objectif).
   Les formules exactes restent à fixer avant l'étape 5.
 
+## Données NHAMCS (décidé le 27 nov 2026)
+
+- **Source : NHAMCS, fichier des urgences (ED), année 2022** (dernière année de la survey). Fichier `ed2022.zip` et documentation `doc22-ed-508.pdf`, sur le FTP du CDC (`https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHAMCS/`). Fichiers SAS et Stata ; à convertir en CSV avec Python. Ne pas committer les données.
+- **Variables retenues pour les vignettes** (noms issus de la documentation 2022, **à vérifier sur le fichier réel avant de coder**) :
+  - patient : `AGE`, `SEX` ;
+  - constantes initiales : `TEMPF`, `PULSE`, `RESPR`, `BPSYS`, `BPDIAS`, `POPCT` ;
+  - motif de consultation : `RFV1` à `RFV5` ;
+  - blessures : `INJPOISAD`, `INJURY72`, `INTENT15`, `INJURY_ENC`, `CAUSE1` ;
+  - maladies chroniques : `ASTHMA`, `CANCER`, `CHF`, `CAD`, `COPD`, `CKD`, `ESRD`, `HTN`, `DIABTYP0/1/2`, `DEPRN`, `OBESITY`, `HYPLIPID`, `ALZHD`, `CEBVD`, `ETOHAB`, `SUBSTAB`, `EDHIV`, `OSA`, `OSTPRSIS`, `HPE` ;
+  - diagnostics du médecin : `DIAG1` à `DIAG5` (et `PRDIAG1` à `PRDIAG5` si utile) ;
+  - examens : variables de services diagnostiques (biologie, `EKG`, tests, imagerie).
+- **Variables exclues des vignettes** : tout ce qui révèle l'issue ou l'hospitalisation (`ADMIT`, `ADMTPHYS`, `LOS`, `HDDIAG*`, `HDSTAT`, `ADISP`, `OBSSTAY`, `STAY24`, `BOARDED`, `LOV`) et les variables d'issue de la visite, ainsi que les gestes, médicaments, intervenants et variables du service (non retenus par le groupe).
+- **Choix assumé à justifier dans le rapport** : les diagnostics du médecin et les examens sont enregistrés pendant ou à la fin de la visite ; les inclure rend la tâche plus facile que celle d'un médecin au moment de la décision. Le dire explicitement dans les limites.
+- **Définition de la décision réelle (vérité terrain)** : « hospitalisation » = `ADMITHOS` **ou** `OBSHOS` (observation puis hospitalisation) **ou** transfert vers un autre hôpital (`TRANOTH`, `TRANPSYC`). Les autres issues (sortie, retour en maison de retraite `TRANNH`, départ avant la fin des soins, décès...) = « non hospitalisation » ou à exclure ; **règle exacte pour ces cas à confirmer**.
+- Conditions d'usage du fichier : usage statistique uniquement, pas de ré-identification, pas de croisement avec d'autres données identifiables ; les poids (`PATWT`) sont nécessaires pour des estimations nationales (à mentionner dans le rapport).
+
 ## Points à préciser (ne pas deviner)
 
-- Source exacte des données NHAMCS (fichier, année, variables utilisées, variable de décision réelle).
+- Confirmer que « transfert » désigne bien `TRANOTH` et `TRANPSYC`, et que `TRANNH` n'en fait pas partie.
+- Traitement des issues ambiguës (`LWBS`, `LBTC`, `LEFTAMA`, `DOA`, `DIEDED`, `OTHDISP`, valeurs manquantes) : exclure du jeu de vignettes ou classer « non hospitalisation » ?
+- Échantillonnage des ~2000 vignettes : tirage aléatoire simple ou stratifié (par ex. pour garder une proportion d'hospitalisations proche de la réalité) ; utilisation ou non des poids.
 - Formules exactes des métriques de variabilité (par ex. désaccord = proportion de personas hors majorité, ou entropie).
 - Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.

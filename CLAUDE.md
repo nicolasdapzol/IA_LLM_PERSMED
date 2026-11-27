@@ -81,22 +81,28 @@ python demo/app.py                                   # démo locale
 ## Équipe et organisation
 
 - 3 personnes, au moins 2 h par jour chacune ; bon niveau LaTeX ; débutants en montage vidéo.
-- **Répartition des rôles : à décider.** (À remplir : qui fait données/personas, inférence/analyse, démo/rapport/vidéo.)
+- **Répartition des rôles : proposition à valider** (A, B, C = les trois membres, à nommer) :
+  - A : données, vignettes et analyse ;
+  - B : personas, inférence et parsing ;
+  - C : démo, rapport et vidéo.
+  Chacun relit le travail d'un autre.
 
-## État d'avancement
+## Plan et état d'avancement
 
-À mettre à jour à chaque session :
+Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater, noter les blocages).
 
-- [ ] Chargement NHAMCS et construction des vignettes
-- [ ] Définition des 24 personas (avec sources)
-- [ ] Inférence MedGemma sur petit échantillon
-- [ ] Parsing des décisions + tests
-- [ ] Run complet
-- [ ] Métriques de variabilité et figures
-- [ ] Performance par persona isolée et en vote majoritaire
-- [ ] Démo Gradio en ligne
-- [ ] Rapport LaTeX
-- [ ] Vidéo
+- [ ] **0. Cadrage** (27–28 nov) : trancher les « points à préciser », valider les rôles, environnement installé pour les trois
+- [ ] **1. Données** (28 nov – 1 déc) : NHAMCS, variables, vignettes, échantillon d'environ 2000 cas, vérification manuelle sur une dizaine
+- [ ] **2. Personas** (28 nov – 2 déc, en parallèle de 1) : sources, 18 factorielles + 1 neutre + 5 aléatoires, génération des prompts
+- [ ] **3. Inférence et parsing** (2–5 déc) : MedGemma, reprise sur crash, sortie JSON stricte, test de fumée sur 20 vignettes ; mesurer le temps par appel
+- [ ] **4. Run complet** (5–8 déc) : 2000 × 24, en local ou sur Colab ; réduire l'échantillon avant de lancer si le temps estimé est trop long
+- [ ] **5. Analyse** (8–10 déc) : variabilité entre personas (priorité), performance de chaque persona isolée, puis en vote majoritaire ; figures régénérables
+- [ ] **6. Démo** (5–10 déc, en parallèle de 4–5) : Gradio, Space Hugging Face
+- [ ] **7. Rapport** (1–12 déc, au fil de l'eau) : squelette LaTeX dès le début
+- [ ] **8. Vidéo** (9–12 déc) : script, enregistrement, montage
+- [ ] **9. Livraison** (12 déc, marge d'un jour avant le 13) : relecture croisée, tout se régénère depuis le dépôt
+
+Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrable avec des données provisoires) ; 5 dépend des décisions de l'étape 0 (métrique, vérité terrain, règle du vote).
 
 ## Points à préciser (ne pas deviner)
 

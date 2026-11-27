@@ -9,7 +9,7 @@ model:
   dtype: bfloat16
 generation:
   do_sample: false       # décodage glouton (pas de température)
-  mode: no_thinking      # mode par défaut ; `--mode` pour en choisir un autre
+  mode: thinking         # décidé le 27 nov 2026 (no_thinking : 1,9 % d'hospitalisation) ; `--mode` pour changer
   # MedGemma 1.5 écrit d'abord un bloc de raisonnement « <unused94>thought\n ... <unused95> »,
   # puis la réponse (souvent dans un bloc ```json). Format observé sur les sorties (27 nov 2026).
   modes:
@@ -23,6 +23,9 @@ generation:
       batch_size: 24     # = les 24 personas d'une vignette (longueurs de prompt proches)
 inference:
   vignettes: data/vignettes.jsonl
+  # Vignettes du run complet (décidé le 27 nov 2026) : 200/200, les premières de chaque classe
+  # dans l'ordre du fichier (déjà tiré au hasard). ~23 h en mode thinking (8,5 s/appel).
+  n_vignettes_run: 400
   # Score continu : réponses complètes comparées au moment où elles divergent.
   answer_candidates:
     hospitalize: '{"decision": "hospitalize"}'

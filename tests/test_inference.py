@@ -126,7 +126,7 @@ def test_main_end_to_end_with_fake_backend(tmp_path, monkeypatch):
     assert report["n_outputs"] == 96
     assert sum(report["status_counts"].values()) == 96
     timing = json.loads((out / I.TIMING).read_text())
-    assert timing["full_run_estimate"]["n_full_calls"] == cfg["n_vignettes"] * 24
+    assert timing["full_run_estimate"]["n_full_calls"] == cfg["inference"]["n_vignettes_run"] * 24
     # relancer : rien à refaire
     I.main(["--config", str(cfg_path), "--n", "4", "--out", str(out), "--backend", "fake"])
     assert len(read(out / I.RAW)) == 96
@@ -141,3 +141,29 @@ def test_resolve_generation_modes():
     cfg["generation"]["mode"] = "nope"
     with pytest.raises(ValueError):
         I.resolve_generation(cfg)
+
+
+def test_default_n_comes_from_config(tmp_path):
+    import yaml
+    cfg = make_cfg(tmp_path)
+    cfg["inference"]["n_vignettes_run"] = 2
+    cfg_path = tmp_path / "experiment.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg), encoding="utf-8")
+    out = tmp_path / "run"
+    I.main(["--config", str(cfg_path), "--out", str(out), "--backend", "fake"])
+    rows = read(out / I.RAW)
+    assert len({r["case_id"] for r in rows}) == 2 and len(rows) == 2 * 24
+
+
+def test_fingerprint_blocks_resume_on_other_gpu(tmp_path):
+    cfg = make_cfg(tmp_path)
+    out = tmp_path / "run"
+    out.mkdir()
+    laptop = {"gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU", "cuda": "12.8",
+              "torch": "2.11.0+cu128", "transformers": "5.24.1"}
+    I.check_or_write_run_config(out, I.fingerprint(cfg, "hf", ["c0"], ["N00"], laptop), {})
+    I.check_or_write_run_config(out, I.fingerprint(cfg, "hf", ["c0"], ["N00"], dict(laptop)), {})
+    for key, value in [("gpu", "NVIDIA L4"), ("torch", "2.12.0"), ("transformers", "5.25.0")]:
+        other = {**laptop, key: value}
+        with pytest.raises(RuntimeError, match="hardware"):
+            I.check_or_write_run_config(out, I.fingerprint(cfg, "hf", ["c0"], ["N00"], other), {})

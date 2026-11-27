@@ -60,7 +60,7 @@ python -m src.parsing --in results/smoke      # re-parser un run sans relancer l
 python -m src.data --config config/experiment.yaml   # vignettes -> data/vignettes.jsonl (+ compte rendu, relecture)
 python -m src.personas --config config/experiment.yaml   # 24 personas vérifiées -> results/personas_preview.md
 python -m src.inference --n 20 --out results/smoke   # test rapide sur petit échantillon
-python -m src.inference --n 2000 --out results/full  # run complet
+python -m src.inference --out results/full           # run complet (inference.n_vignettes_run = 400, ~23 h)
 python -m src.analysis --in results/full             # métriques et figures
 python demo/app.py                                   # démo locale
 ```
@@ -103,8 +103,9 @@ Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater
 - [ ] **2. Personas** (28 nov – 2 déc, en parallèle de 1) : sources, 18 factorielles + 1 neutre + 5 aléatoires, génération des prompts
   - 27 nov : blocs validés (`report/personas_blocks_draft.md`), inscrits dans `config/personas.yaml` ; `src/personas.py` + tests ; identités non médicales tirées (graine 42) : police officer, auctioneer, accountant, scientist, collector. Reste : vérification des 12 références par le groupe (champ `verified_by`, liste dans `report/personas_sources_candidates.md`).
 - [ ] **3. Inférence et parsing** (2–5 déc) : MedGemma, reprise sur crash, sortie JSON stricte, test de fumée sur 20 vignettes ; mesurer le temps par appel
-  - 27 nov : `src/inference.py`, `src/parsing.py` + tests. MedGemma 1.5 raisonne avant de répondre (`<unused94>thought … <unused95>`). Deux modes dans la config (`--mode`). Tests de fumée 20 × 24 : `no_thinking` (raisonnement vide pré-rempli) 0,107 s/appel, 0 invalide, mais 1,9 % d'hospitalisation (désaccord moyen 0,019) ; `thinking` 8,5 s/appel (~114 h pour 2000 × 24), 1 sortie tronquée sur 480, 74 % d'hospitalisation (désaccord moyen 0,158). **Choix du mode et de la taille d'échantillon à trancher par le groupe.**
-- [ ] **4. Run complet** (5–8 déc) : 2000 × 24, en local ou sur Colab ; réduire l'échantillon avant de lancer si le temps estimé est trop long
+  - 27 nov : `src/inference.py`, `src/parsing.py` + tests. MedGemma 1.5 raisonne avant de répondre (`<unused94>thought … <unused95>`). Deux modes dans la config (`--mode`). Tests de fumée 20 × 24 : `no_thinking` (raisonnement vide pré-rempli) 0,107 s/appel, 0 invalide, mais 1,9 % d'hospitalisation (désaccord moyen 0,019) ; `thinking` 8,5 s/appel (~114 h pour 2000 × 24), 1 sortie tronquée sur 480, 74 % d'hospitalisation (désaccord moyen 0,158). Décision du groupe : mode `thinking`, 400 vignettes (voir « Décisions sur l'inférence »).
+  - 27 nov, accélération (2 vignettes × 24, mode thinking) : lots de 16 ou 24 plus lents (mémoire GPU saturée) ; vLLM 0.34 (env. séparé `.venv-vllm`, cache KV limité à ~15 k tokens sur 12 Go) 3,5 s/appel contre 8,2 s, mais **non reproductible** (deux runs identiques : 40/48 décisions égales, 0 texte identique). transformers à lots fixes : **reproductible** (48/48 textes identiques). Mais changer la taille des lots change 17 à 27 % des décisions (arrondis bf16 sur ~900 tokens de raisonnement) : un « bruit numérique » à mesurer et comparer à l'effet des personas.
+- [ ] **4. Run complet** (5–8 déc) : 400 × 24 = 9 600 appels (~23 h), en local avec transformers, lots de 8 ; puis mesure du bruit numérique
 - [ ] **5. Analyse** (8–10 déc) : variabilité entre personas (priorité), performance de chaque persona isolée, puis en vote majoritaire ; figures régénérables
 - [ ] **6. Démo** (5–10 déc, en parallèle de 4–5) : Gradio, Space Hugging Face
 - [ ] **7. Rapport** (1–12 déc, au fil de l'eau) : squelette LaTeX dès le début
@@ -164,6 +165,10 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 - **Score continu enregistré** : probabilité de « hospitalize » face à « do_not_hospitalize » au moment de la décision.
 - **Sorties invalides** : pas de nouvel essai ; comptées comme manquantes et rapportées (par persona).
 - **Test de fumée : 20 vignettes (10/10) × 24 personas** = 480 appels, avant tout run complet.
+- **Mode avec raisonnement** (`generation.mode: thinking`, décidé le 27 nov 2026) : sans raisonnement, le modèle n'hospitalise presque jamais (1,9 %).
+- **Run complet : 400 vignettes (200/200) × 24 personas** (`inference.n_vignettes_run`), car 2000 × 24 prendrait ~114 h. Le fichier des 2000 vignettes reste inchangé ; on prend les 200 premières de chaque classe dans l'ordre du fichier (déjà tiré au hasard).
+- **Backend : transformers, lots de 8 fixes** (reproductible : 48/48 textes identiques en relançant). vLLM écarté : 2,4× plus rapide mais non reproductible.
+- **Bruit numérique à mesurer** : changer la taille des lots change 17 à 27 % des décisions (arrondis bf16 sur ~900 tokens de raisonnement). Relancer une partie des appels (par ex. N00 + 2 personas, 400 vignettes) avec une autre taille de lot et comparer ce bruit au désaccord entre personas ; à rapporter dans le rapport. Protocole exact à fixer avant l'étape 5.
 
 ## Consignes du cours (source : `report/consignes.md`, résumé)
 

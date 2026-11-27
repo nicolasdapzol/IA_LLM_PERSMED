@@ -2,7 +2,7 @@
 
 Usage :
     python -m src.inference --config config/experiment.yaml --n 20 --personas all --out results/smoke
-    python -m src.inference --config config/experiment.yaml --out results/full      # toutes les vignettes
+    python -m src.inference --config config/experiment.yaml --out results/full      # inference.n_vignettes_run
     --mode thinking | no_thinking   (défaut : generation.mode de la config)
 
 Sorties dans --out :
@@ -31,6 +31,8 @@ from src import parsing
 from src import personas as P
 
 RAW, RUN_CONFIG, TIMING = "raw.jsonl", "run_config.json", "timing.json"
+# Matériel et logiciels qui changent les arrondis, donc les sorties : une reprise doit les garder.
+HARDWARE_KEYS = ("gpu", "cuda", "torch", "transformers")
 
 
 # ---------------------------------------------------------------------------
@@ -117,10 +119,13 @@ def resolve_generation(cfg: dict) -> dict:
     return {"do_sample": g["do_sample"], "mode": g["mode"], **g["modes"][g["mode"]]}
 
 
-def fingerprint(cfg: dict, backend_name: str, case_ids: list[str], persona_ids: list[str]) -> dict:
-    """Ce qui doit être identique pour reprendre un run."""
+def fingerprint(cfg: dict, backend_name: str, case_ids: list[str], persona_ids: list[str],
+                backend_info: dict | None = None) -> dict:
+    """Ce qui doit être identique pour reprendre un run (GPU et versions compris)."""
+    info = backend_info or {}
     return {
         "backend": backend_name,
+        "hardware": {k: info.get(k) for k in HARDWARE_KEYS},
         "model": cfg["model"],
         "generation": resolve_generation(cfg),
         "thinking_markers": [cfg["parsing"]["thinking_start"], cfg["parsing"]["thinking_end"]],
@@ -381,7 +386,8 @@ def append_timing(out: Path, session: dict, n_full_calls: int) -> dict:
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description="Inférence MedGemma : vignettes × personas.")
     ap.add_argument("--config", default="config/experiment.yaml")
-    ap.add_argument("--n", type=int, default=None, help="nombre de vignettes (pair) ; défaut : toutes")
+    ap.add_argument("--n", type=int, default=None,
+                    help="nombre de vignettes (pair) ; défaut : inference.n_vignettes_run")
     ap.add_argument("--personas", default="all", help="'all' ou ids séparés par des virgules")
     ap.add_argument("--out", required=True, help="dossier du run (reprise si existant)")
     ap.add_argument("--backend", choices=["hf", "fake"], default="hf")
@@ -394,14 +400,18 @@ def main(argv: list[str] | None = None) -> None:
     gen = resolve_generation(cfg)
     all_personas, spec = P.load_personas(cfg)
     personas = select_personas(all_personas, args.personas)
-    vignettes = select_vignettes(load_vignettes(cfg["inference"]["vignettes"]), args.n)
+    n_run = cfg["inference"]["n_vignettes_run"]
+    vignettes = select_vignettes(load_vignettes(cfg["inference"]["vignettes"]),
+                                 args.n if args.n is not None else n_run)
     jobs = make_jobs(vignettes, personas, spec)
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     backend: Backend = HFBackend(cfg) if args.backend == "hf" else FakeBackend(cfg)
-    fp = fingerprint(cfg, backend.name, [v["case_id"] for v in vignettes], [p.id for p in personas])
-    env = {**backend.info(), "python": platform.python_version(), "platform": platform.platform()}
+    info = backend.info()
+    fp = fingerprint(cfg, backend.name, [v["case_id"] for v in vignettes], [p.id for p in personas],
+                     info)
+    env = {**info, "python": platform.python_version(), "platform": platform.platform()}
     check_or_write_run_config(out, fp, env)
 
     print(f"{len(vignettes)} vignettes × {len(personas)} personas = {len(jobs)} appels "
@@ -409,7 +419,7 @@ def main(argv: list[str] | None = None) -> None:
     started = now()
     session = run_jobs(jobs, backend, out, gen["batch_size"])
     session["started_at"] = started
-    estimate = append_timing(out, session, cfg["n_vignettes"] * len(all_personas))
+    estimate = append_timing(out, session, n_run * len(all_personas))
 
     parsed, report = parsing.parse_records(parsing.read_jsonl(out / RAW), cfg["parsing"])
     with open(out / "parsed.jsonl", "w", encoding="utf-8") as f:

@@ -1,10 +1,41 @@
 # Paramètres de l'expérience : rien en dur dans le code.
 seed: 42
-model: TODO            # identifiant exact du modèle MedGemma utilisé
 n_vignettes: 2000      # total ; tirage stratifié 50/50 => n_vignettes / 2 par classe
+
+# Étape 3 : inférence (src/inference.py) — décisions du 27 nov 2026 (voir CLAUDE.md)
+model:
+  id: google/medgemma-1.5-4b-it
+  revision: 91850547d9f0b2fdd21aa7c5f4f3d1a8a52c243b   # commit Hugging Face figé
+  dtype: bfloat16
 generation:
-  temperature: TODO
-  max_new_tokens: TODO
+  do_sample: false       # décodage glouton (pas de température)
+  mode: thinking         # décidé le 27 nov 2026 (no_thinking : 1,9 % d'hospitalisation) ; `--mode` pour changer
+  # MedGemma 1.5 écrit d'abord un bloc de raisonnement « <unused94>thought\n ... <unused95> »,
+  # puis la réponse (souvent dans un bloc ```json). Format observé sur les sorties (27 nov 2026).
+  modes:
+    thinking:            # comportement natif : raisonnement (~650-800 tokens observés) puis réponse
+      prefill: ""
+      max_new_tokens: 2048
+      batch_size: 8      # mémoire GPU (12 Go) : cache long
+    no_thinking:         # bloc de raisonnement vide pré-rempli : réponse directe
+      prefill: "<unused94>thought\n<unused95>"   # non documenté, déduit du format de sortie
+      max_new_tokens: 32 # réponse attendue ~15 tokens ; marge pour détecter le texte en trop
+      batch_size: 24     # = les 24 personas d'une vignette (longueurs de prompt proches)
+inference:
+  vignettes: data/vignettes.jsonl
+  # Vignettes du run complet (décidé le 27 nov 2026) : 200/200, les premières de chaque classe
+  # dans l'ordre du fichier (déjà tiré au hasard). ~23 h en mode thinking (8,5 s/appel).
+  n_vignettes_run: 400
+  # Score continu : réponses complètes comparées au moment où elles divergent.
+  answer_candidates:
+    hospitalize: '{"decision": "hospitalize"}'
+    do_not_hospitalize: '{"decision": "do_not_hospitalize"}'
+parsing:
+  thinking_start: "<unused94>"   # début du bloc de raisonnement
+  thinking_end: "<unused95>"     # fin du bloc : la réponse est lue après ce marqueur
+  decision_key: decision
+  values: {hospitalize: 1, do_not_hospitalize: 0}
+  max_invalid_rate: 0.02   # au-delà (test de fumée) : revoir la consigne avant le run complet
 paths:
   data: data/
   results: results/

@@ -139,6 +139,24 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 - **Tirage : échantillon stratifié 50/50**, soit environ 1000 vignettes « hospitalisation » et 1000 « non hospitalisation » (graine dans `config/experiment.yaml`, poids non utilisés). Conséquences à écrire dans le rapport : la prévalence de l'échantillon n'est pas celle de la réalité ; la référence naïve est 50 % ; utiliser des métriques adaptées (sensibilité, spécificité, exactitude équilibrée) plutôt que la seule exactitude.
 - **Désaccord par vignette** (métrique de variabilité principale) : pour une vignette, soit `p` la proportion des 24 personas qui répondent « hospitaliser » ; **désaccord = min(p, 1 − p)** (proportion de personas hors de la majorité, entre 0 et 0,5). L'accord global (kappa de Fleiss), l'écart aux contrôles et le taux d'hospitalisation par persona restent des mesures complémentaires.
 
+## Consignes du cours (source : `report/consignes.md`, résumé)
+
+**Partie 1 : vidéo de démonstration (5 minutes)**
+- **Sans aucun son** : tout passe par des animations, des sous-titres ou des mises en évidence visuelles.
+- **Publique** (par exemple sur YouTube), avec le lien déposé sur TOMUSS.
+- Elle commence par : nom du projet, date, nom du cours, noms des étudiants.
+- Structure libre ; pour un prototype : introduction, but, fonctionnalités principales (avantages, innovations), développement (architecture, techniques, technologies), démonstration.
+
+**Partie 2 : code et rapport**
+- Rapport au **format ECAI 2025, piste « démonstration »** (gabarit LaTeX sur le site de l'appel à contributions ECAI 2025). Conseil de l'enseignant : regarder les actes ECAI 2025 pour la structure et le contenu.
+- Rédigé sur **Overleaf**, avec l'enseignant invité sur le projet (adresse dans `report/consignes.md`).
+- **3 pages maximum + 1 page de références au plus.**
+- Dépôt sur **TOMUSS** d'**un seul ZIP** : PDF du rapport + code source, avant la date limite. Le rapport doit contenir les **liens vers le code à jour et vers la vidéo**.
+- Pour toute question : contacter directement l'enseignant coordinateur.
+
+Conséquences pour le projet : la démo interactive en ligne est au centre du rapport et de la vidéo ; le rapport est très court (3 pages), donc résultats et figures choisis avec soin ; la vidéo se prépare comme des diapositives animées sous-titrées.
+
 ## Points à préciser (ne pas deviner)
 
-- Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.
+- Règles sur l'usage d'outils d'IA : **non précisées** dans `report/consignes.md` ; à demander à l'enseignant si nécessaire.
+- Date et heure exactes de la limite de dépôt sur TOMUSS (le 13 décembre 2026 est la date retenue par le groupe).

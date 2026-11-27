@@ -1,0 +1,10 @@
+# Paramètres de l'expérience : rien en dur dans le code.
+seed: 42
+model: TODO            # identifiant exact du modèle MedGemma utilisé
+n_vignettes: 2000
+generation:
+  temperature: TODO
+  max_new_tokens: TODO
+paths:
+  data: data/
+  results: results/

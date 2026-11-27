@@ -1,0 +1,10 @@
+# 24 personas : 18 factorielles + 1 neutre + 5 aléatoires (contrôles).
+# Chaque description doit citer sa source bibliographique (littérature uniquement).
+factors:
+  experience: [junior, senior]
+  specialty: [urgentiste, generaliste, sante_publique]
+  objective: [securite, couts, neutre]
+controls:
+  neutral: 1
+  random: 5
+personas: []   # TODO : à remplir (id, facteurs, texte du prompt, source)

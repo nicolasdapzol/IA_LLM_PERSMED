@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.ipynb_checkpoints/
+# données lourdes et sorties régénérables
+data/*
+!data/.gitkeep
+results/*
+!results/.gitkeep
+# LaTeX
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.synctex.gz

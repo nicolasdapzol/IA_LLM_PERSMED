@@ -1,0 +1,11 @@
+# Dépendances de base (à figer avec des versions une fois l'environnement validé)
+pandas
+numpy
+pyyaml
+scikit-learn
+matplotlib
+transformers
+accelerate
+torch
+gradio
+pytest

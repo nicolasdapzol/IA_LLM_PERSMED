@@ -9,6 +9,12 @@ paths:
   data: data/
   results: results/
 
+# Étape 2 : personas (src/personas.py)
+personas:
+  file: config/personas.yaml
+  preview_out: results/personas_preview.md
+  preview_vignettes: data/vignettes.jsonl   # exemple de prompt complet (si le fichier existe)
+
 # ---------------------------------------------------------------------------
 # Étape 1 : vignettes NHAMCS 2022 (src/data.py)
 # Codes et noms de colonnes vérifiés sur ed2022-stata.dta et doc22-ed-508.pdf.

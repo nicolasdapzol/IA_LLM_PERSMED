@@ -1,10 +1,132 @@
-# 24 personas : 18 factorielles + 1 neutre + 5 aléatoires (contrôles).
-# Chaque description doit citer sa source bibliographique (littérature uniquement).
+# 24 conditions : 18 personas factorielles + 1 contrôle sans persona + 5 identités non médicales.
+# Contenu validé par le groupe le 27 nov 2026 (brouillon : report/personas_blocks_draft.md).
+# Les références restent à vérifier une par une par un membre du groupe (champ verified_by).
+# Graine du tirage des identités non médicales : `seed` de config/experiment.yaml.
+language: en
+expected_total: 24
+
 factors:
   experience: [junior, senior]
   specialty: [urgentiste, generaliste, sante_publique]
   objective: [securite, couts, neutre]
+
+# Persona factorielle = blocs assemblés dans cet ordre, séparés par une espace.
+persona_template: "{experience} {specialty} {objective}"
+
+blocks:
+  experience:
+    junior:
+      text: "You are a junior physician with less than two years of independent clinical practice."
+      sources: [mcdonald2024, lawton2019]
+    senior:
+      text: "You are a senior physician with more than ten years of independent clinical practice."
+      sources: [mcdonald2024, lawton2019]
+  specialty:
+    urgentiste:
+      text: "Your specialty is emergency medicine."
+      sources: [pines2010, smulowitz2024]
+    generaliste:
+      text: "Your specialty is family medicine (general practice)."
+      sources: [fiscella2000, alam2017]
+    sante_publique:
+      text: "Your specialty is public health and preventive medicine, with a focus on the health of the whole population."
+      sources: [decamp2018]
+  objective:
+    securite:
+      text: "Your top priority is patient safety: you want to avoid missing a serious condition or sending home a patient who could deteriorate."
+      sources: [katz2005, lawton2019]
+    couts:
+      text: "Your top priority is the efficient use of healthcare resources: you want to avoid unnecessary hospital admissions and their costs."
+      sources: [sabbatini2014, hurst2007]
+    neutre:
+      text: ""          # objectif neutre = aucune phrase
+      sources: []
+
 controls:
-  neutral: 1
-  random: 5
-personas: []   # TODO : à remplir (id, facteurs, texte du prompt, source)
+  no_persona:
+    id: N00
+    sources: [zheng2024, klang2026]
+  non_medical:
+    n: 5
+    id_prefix: R
+    template: "You are {role_text}."
+    sources: [zheng2024]
+    # Rôles de la catégorie « other occupations » (58) du fichier data/role_info.csv de zheng2024 :
+    # https://github.com/Jiaxin-Pei/Prompting-with-Social-Roles/blob/main/data/role_info.csv
+    roles: [CEO, accountant, administrator, advisor, architect, artist, athlete, attendant,
+            auctioneer, auditor, baker, blacksmith, broker, carpenter, cashier, clergy, clerk,
+            cofounder, collector, conductor, cook, counsellor, counselor, dancer, designer,
+            driver, engineer, farmer, gardener, geologist, housekeeper, humanist, inspector,
+            janitor, librarian, manager, mason, mechanic, midwife, musician, operator, painter,
+            photographer, pilot, police, postmaster, president, research scientist, sailor,
+            sales, scholar, scientist, secretary, shoemaker, soldier, surveyor, tailor, weaver]
+    excluded_roles: [midwife, counsellor, counselor, attendant]   # rôles liés au soin
+    role_text_overrides:
+      police: "a police officer"
+
+# Consigne commune, identique pour les 24 conditions. {vignette} est remplacé tel quel
+# (pas de str.format : les accolades du JSON sont littérales).
+task_prompt: |-
+  Below is the record of an emergency department visit. Based only on this record, decide whether the patient should be hospitalized (admitted to this hospital or transferred to another hospital) or not hospitalized.
+
+  Answer with a JSON object only, with no other text:
+  {"decision": "hospitalize"} or {"decision": "do_not_hospitalize"}
+
+  Visit record:
+  {vignette}
+vignette_placeholder: "{vignette}"
+persona_task_separator: "\n\n"
+
+references:
+  mcdonald2024:
+    citation: "McDonald N, Antkowiak PS, Burke R, et al. Emergency physician resource utilization varies by years of experience. J Am Coll Emerg Physicians Open. 2024;5:e13162."
+    doi: 10.1002/emp2.13162
+    verified_by: null
+  lawton2019:
+    citation: "Lawton R, Robinson O, Harrison R, et al. Are more experienced clinicians better able to tolerate uncertainty and manage risks? A vignette study of doctors in three NHS emergency departments in England. BMJ Qual Saf. 2019;28(5):382-388."
+    doi: 10.1136/bmjqs-2018-008390
+    verified_by: null
+  pines2010:
+    citation: "Pines JM, Isserman JA, Szyld D, et al. The effect of physician risk tolerance and the presence of an observation unit on decision making for ED patients with chest pain. Am J Emerg Med. 2010;28:771-779."
+    doi: 10.1016/j.ajem.2009.03.019
+    verified_by: null
+  smulowitz2024:
+    citation: "Smulowitz PB, Burke RC, Ostrovsky D, et al. Clinician Risk Tolerance and Rates of Admission From the Emergency Department. JAMA Netw Open. 2024;7(2):e2356189."
+    doi: 10.1001/jamanetworkopen.2023.56189
+    verified_by: null
+  fiscella2000:
+    citation: "Fiscella K, Franks P, Zwanziger J, et al. Risk aversion and costs: a comparison of family physicians and general internists. J Fam Pract. 2000;49:12-17."
+    doi: null       # PMID 10691394 ; contenu non vérifié sur le texte (notice seulement)
+    verified_by: null
+  alam2017:
+    citation: "Alam R, Cheraghi-Sohi S, Panagioti M, et al. Managing diagnostic uncertainty in primary care: a systematic critical review. BMC Fam Pract. 2017;18:79."
+    doi: 10.1186/s12875-017-0650-0
+    verified_by: null
+  decamp2018:
+    citation: "DeCamp M, Pomerantz D, Cotts K, et al. Ethical Issues in the Design and Implementation of Population Health Programs. J Gen Intern Med. 2018;33(3):370-375."
+    doi: 10.1007/s11606-017-4234-4
+    verified_by: null
+  katz2005:
+    citation: "Katz DA, Williams GC, Brown RL, et al. Emergency Physicians' Fear of Malpractice in Evaluating Patients With Possible Acute Cardiac Ischemia. Ann Emerg Med. 2005;46(6):525-533."
+    doi: 10.1016/j.annemergmed.2005.04.016
+    verified_by: null
+  sabbatini2014:
+    citation: "Sabbatini AK, Tilburt JC, Campbell EG, et al. Controlling Health Costs: Physician Responses to Patient Expectations for Medical Care. J Gen Intern Med. 2014;29(9):1234-1241."
+    doi: 10.1007/s11606-014-2898-6
+    verified_by: null
+  hurst2007:
+    citation: "Hurst SA, Forde R, Reiter-Theil S, et al. Physicians' views on resource availability and equity in four European health care systems. BMC Health Serv Res. 2007;7:137."
+    doi: 10.1186/1472-6963-7-137
+    verified_by: null
+  zheng2024:
+    citation: "Zheng M, Pei J, Logeswaran L, et al. When \"A Helpful Assistant\" Is Not Really Helpful: Personas in System Prompts Do Not Improve Performances of Large Language Models. Findings of EMNLP 2024, pp. 15126-15154."
+    doi: 10.18653/v1/2024.findings-emnlp.888
+    verified_by: null
+  klang2026:
+    citation: "Klang E, Gorenstein A, Omar M, et al. Personas Shift Clinical Action Thresholds in Large Language Models. medRxiv preprint, 2026."
+    doi: 10.64898/2026.01.01.26343302
+    verified_by: null
+  abdullahi2026:
+    citation: "Abdullahi T, Ghosh S, Fraser HS, et al. The Persona Paradox: Medical Personas as Behavioral Priors in Clinical Language Models. arXiv:2601.05376, 2026."
+    doi: 10.48550/arXiv.2601.05376
+    verified_by: null

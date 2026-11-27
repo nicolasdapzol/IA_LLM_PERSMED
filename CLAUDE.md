@@ -51,8 +51,12 @@ Mesurer à quel point la décision d'un LLM « médecin » (hospitaliser ou non 
 À compléter au fur et à mesure que les scripts existent :
 
 ```bash
+python -m venv .venv && source .venv/bin/activate
+pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128   # torch CUDA (GPU)
 pip install -r requirements.txt
+hf auth login                                 # accès MedGemma (licence acceptée sur Hugging Face)
 pytest                                        # tests unitaires
+python -m src.parsing --in results/smoke      # re-parser un run sans relancer le modèle
 python -m src.data --config config/experiment.yaml   # vignettes -> data/vignettes.jsonl (+ compte rendu, relecture)
 python -m src.personas --config config/experiment.yaml   # 24 personas vérifiées -> results/personas_preview.md
 python -m src.inference --n 20 --out results/smoke   # test rapide sur petit échantillon
@@ -99,6 +103,7 @@ Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater
 - [ ] **2. Personas** (28 nov – 2 déc, en parallèle de 1) : sources, 18 factorielles + 1 neutre + 5 aléatoires, génération des prompts
   - 27 nov : blocs validés (`report/personas_blocks_draft.md`), inscrits dans `config/personas.yaml` ; `src/personas.py` + tests ; identités non médicales tirées (graine 42) : police officer, auctioneer, accountant, scientist, collector. Reste : vérification des 12 références par le groupe (champ `verified_by`, liste dans `report/personas_sources_candidates.md`).
 - [ ] **3. Inférence et parsing** (2–5 déc) : MedGemma, reprise sur crash, sortie JSON stricte, test de fumée sur 20 vignettes ; mesurer le temps par appel
+  - 27 nov : `src/inference.py`, `src/parsing.py` + tests. MedGemma 1.5 raisonne avant de répondre (`<unused94>thought … <unused95>`). Deux modes dans la config (`--mode`). Tests de fumée 20 × 24 : `no_thinking` (raisonnement vide pré-rempli) 0,107 s/appel, 0 invalide, mais 1,9 % d'hospitalisation (désaccord moyen 0,019) ; `thinking` 8,5 s/appel (~114 h pour 2000 × 24), 1 sortie tronquée sur 480, 74 % d'hospitalisation (désaccord moyen 0,158). **Choix du mode et de la taille d'échantillon à trancher par le groupe.**
 - [ ] **4. Run complet** (5–8 déc) : 2000 × 24, en local ou sur Colab ; réduire l'échantillon avant de lancer si le temps estimé est trop long
 - [ ] **5. Analyse** (8–10 déc) : variabilité entre personas (priorité), performance de chaque persona isolée, puis en vote majoritaire ; figures régénérables
 - [ ] **6. Démo** (5–10 déc, en parallèle de 4–5) : Gradio, Space Hugging Face
@@ -151,6 +156,14 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 - **Sortie du modèle : décision seule**, en JSON (`hospitalize` / `do_not_hospitalize`), sans justification.
 - **Langue : anglais**, comme les vignettes.
 - **Sources** : Claude propose des références candidates (avec lien ou DOI et passage justificatif) ; le groupe vérifie chacune avant de l'inscrire dans `config/personas.yaml`.
+
+## Décisions sur l'inférence (27 nov 2026)
+
+- **Modèle : `google/medgemma-1.5-4b-it`** (accès soumis à licence sur Hugging Face ; révision exacte figée dans la config).
+- **Décodage glouton** (`do_sample=False`), un appel par couple (vignette, persona) : la variabilité mesurée vient des personas, pas du hasard.
+- **Score continu enregistré** : probabilité de « hospitalize » face à « do_not_hospitalize » au moment de la décision.
+- **Sorties invalides** : pas de nouvel essai ; comptées comme manquantes et rapportées (par persona).
+- **Test de fumée : 20 vignettes (10/10) × 24 personas** = 480 appels, avant tout run complet.
 
 ## Consignes du cours (source : `report/consignes.md`, résumé)
 

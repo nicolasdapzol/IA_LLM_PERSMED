@@ -132,10 +132,14 @@ Dépendances : 1 et 2 sont indépendantes ; 3 a besoin des deux (code démarrabl
 - **Définition de la décision réelle (vérité terrain)** : « hospitalisation » = `ADMITHOS` **ou** `OBSHOS` (observation puis hospitalisation) **ou** transfert vers un autre hôpital (`TRANOTH`, `TRANPSYC`). Les autres issues (sortie, retour en maison de retraite `TRANNH`, départ avant la fin des soins, décès...) = « non hospitalisation » ou à exclure ; **règle exacte pour ces cas à confirmer**.
 - Conditions d'usage du fichier : usage statistique uniquement, pas de ré-identification, pas de croisement avec d'autres données identifiables ; les poids (`PATWT`) sont nécessaires pour des estimations nationales (à mentionner dans le rapport).
 
+## Décisions complémentaires (27 nov 2026)
+
+- **Issues ambiguës : exclues du jeu de vignettes** (`LWBS`, `LBTC`, `LEFTAMA`, `DOA`, `DIEDED`, `OTHDISP`, et valeurs manquantes sur les variables d'issue). Compter et rapporter le nombre de visites exclues.
+- **Tirage : échantillon stratifié 50/50**, soit environ 1000 vignettes « hospitalisation » et 1000 « non hospitalisation » (graine dans `config/experiment.yaml`, poids non utilisés). Conséquences à écrire dans le rapport : la prévalence de l'échantillon n'est pas celle de la réalité ; la référence naïve est 50 % ; utiliser des métriques adaptées (sensibilité, spécificité, exactitude équilibrée) plutôt que la seule exactitude.
+- **Désaccord par vignette** (métrique de variabilité principale) : pour une vignette, soit `p` la proportion des 24 personas qui répondent « hospitaliser » ; **désaccord = min(p, 1 − p)** (proportion de personas hors de la majorité, entre 0 et 0,5). L'accord global (kappa de Fleiss), l'écart aux contrôles et le taux d'hospitalisation par persona restent des mesures complémentaires.
+
 ## Points à préciser (ne pas deviner)
 
-- Confirmer que « transfert » désigne bien `TRANOTH` et `TRANPSYC`, et que `TRANNH` n'en fait pas partie.
-- Traitement des issues ambiguës (`LWBS`, `LBTC`, `LEFTAMA`, `DOA`, `DIEDED`, `OTHDISP`, valeurs manquantes) : exclure du jeu de vignettes ou classer « non hospitalisation » ?
-- Échantillonnage des ~2000 vignettes : tirage aléatoire simple ou stratifié (par ex. pour garder une proportion d'hospitalisations proche de la réalité) ; utilisation ou non des poids.
-- Formules exactes des métriques de variabilité (par ex. désaccord = proportion de personas hors majorité, ou entropie).
+- Confirmer que « transfert » désigne bien `TRANOTH` et `TRANPSYC`, et que `TRANNH` (retour ou transfert en maison de retraite) n'en fait pas partie.
 - Consignes exactes du cours sur le format du rapport, la vidéo et l'usage d'outils d'IA.
+- Noms de colonnes réels du fichier 2022 (vérifier avec `df.columns` après téléchargement).

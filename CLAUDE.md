@@ -53,6 +53,7 @@ Mesurer à quel point la décision d'un LLM « médecin » (hospitaliser ou non 
 ```bash
 pip install -r requirements.txt
 pytest                                        # tests unitaires
+python -m src.data --config config/experiment.yaml   # vignettes -> data/vignettes.jsonl (+ compte rendu, relecture)
 python -m src.inference --n 20 --out results/smoke   # test rapide sur petit échantillon
 python -m src.inference --n 2000 --out results/full  # run complet
 python -m src.analysis --in results/full             # métriques et figures
@@ -93,6 +94,7 @@ Dates proposées, à ajuster. À mettre à jour à chaque session (cocher, dater
 
 - [ ] **0. Cadrage** (27–28 nov) : trancher les « points à préciser », valider les rôles, environnement installé pour les trois
 - [ ] **1. Données** (28 nov – 1 déc) : NHAMCS, variables, vignettes, échantillon d'environ 2000 cas, vérification manuelle sur une dizaine
+  - 27 nov : `src/data.py` + tests ; 2000 vignettes (1000/1000) générées. Libellés CIM-10-CM : fichier CDC `icd10cm_order_2022.txt` à placer dans `data/raw/icd10cm/` (URL dans `config/experiment.yaml`). Reste : relecture manuelle de `data/manual_check.md`. Limite : 123 libellés RFV sont tronqués (« ... ») dans le fichier Stata comme dans les formats SAS officiels.
 - [ ] **2. Personas** (28 nov – 2 déc, en parallèle de 1) : sources, 18 factorielles + 1 neutre + 5 aléatoires, génération des prompts
 - [ ] **3. Inférence et parsing** (2–5 déc) : MedGemma, reprise sur crash, sortie JSON stricte, test de fumée sur 20 vignettes ; mesurer le temps par appel
 - [ ] **4. Run complet** (5–8 déc) : 2000 × 24, en local ou sur Colab ; réduire l'échantillon avant de lancer si le temps estimé est trop long

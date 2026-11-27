@@ -1,10 +1,92 @@
 # Paramètres de l'expérience : rien en dur dans le code.
 seed: 42
 model: TODO            # identifiant exact du modèle MedGemma utilisé
-n_vignettes: 2000
+n_vignettes: 2000      # total ; tirage stratifié 50/50 => n_vignettes / 2 par classe
 generation:
   temperature: TODO
   max_new_tokens: TODO
 paths:
   data: data/
   results: results/
+
+# ---------------------------------------------------------------------------
+# Étape 1 : vignettes NHAMCS 2022 (src/data.py)
+# Codes et noms de colonnes vérifiés sur ed2022-stata.dta et doc22-ed-508.pdf.
+# ---------------------------------------------------------------------------
+data:
+  raw_file: data/raw/ed2022-stata.dta
+  # Fichier officiel CDC/NCHS (ICD-10-CM FY2022, version du 1er avril 2022) :
+  # https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Publications/ICD10CM/2022/icd10cm_order_2022.txt
+  icd10_file: data/raw/icd10cm/icd10cm_order_2022.txt
+  vignettes_out: data/vignettes.jsonl
+  report_out: data/vignettes_report.json
+  manual_check_out: data/manual_check.md
+  n_manual_check: 10   # moitié hospitalisation, moitié non
+
+  # --- Vérité terrain -------------------------------------------------------
+  hospitalization_cols: [ADMITHOS, OBSHOS, TRANOTH, TRANPSYC]
+  ambiguous_cols: [LWBS, LBTC, LEFTAMA, DOA, DIEDED, OTHDISP]
+  no_answer_col: NODISP          # 1 = aucune case d'issue cochée (valeur manquante)
+  # Colonnes d'issue conservées à côté de la vignette (jamais dans le texte).
+  outcome_cols_saved: [ADMITHOS, OBSHOS, TRANOTH, TRANPSYC, TRANNH, OBSDIS,
+                       LWBS, LBTC, LEFTAMA, DOA, DIEDED, OTHDISP, NODISP,
+                       NOFU, RETRNED, RETREFFU]
+
+  # --- Codes spéciaux communs (documentation NHAMCS) -------------------------
+  blank_code: -9
+  unknown_code: -8
+  not_applicable_code: -7
+
+  # --- Contenu de la vignette (liste blanche) --------------------------------
+  age_col: AGE
+  sex_col: SEX
+  vitals:                        # scale : valeur stockée = valeur réelle × scale
+    - {col: TEMPF,  name: Temperature,       unit: "°F",   scale: 10}
+    - {col: PULSE,  name: Heart rate,        unit: "/min", scale: 1}
+    - {col: RESPR,  name: Respiratory rate,  unit: "/min", scale: 1}
+    - {col: BPSYS,  name: Systolic BP,       unit: "mmHg", scale: 1}
+    - {col: BPDIAS, name: Diastolic BP,      unit: "mmHg", scale: 1}
+    - {col: POPCT,  name: Pulse oximetry,    unit: "%",    scale: 1}
+  vital_special_codes:           # 998 = mesure au Doppler/palpation (PULSE, BPDIAS)
+    998: "obtained by Doppler or palpation (no numeric value)"
+  vital_missing_text: "not recorded"
+
+  rfv_cols: [RFV1, RFV2, RFV3, RFV4, RFV5]   # motifs détaillés (choix du groupe)
+  rfv_skip_codes: [89980, 89990]             # Inadequate data base, Illegible entry
+  rfv_leak_codes: [58350, 71370]             # Dead on arrival (DOA), Direct admission to hospital
+
+  injury_flag_col: INJPOISAD     # 4 = visite non liée à une blessure => section omise
+  injury_not_related_code: 4
+  injury_cols:
+    - {col: INJURY72,   name: "occurred within 72 hours before the visit"}
+    - {col: INTENT15,   name: "intent"}
+    - {col: INJURY_ENC, name: "type of encounter"}
+  cause_cols: [CAUSE1]
+
+  chronic_cols: [ASTHMA, CANCER, CHF, CAD, COPD, CKD, ESRD, HTN, DIABTYP0,
+                 DIABTYP1, DIABTYP2, DEPRN, OBESITY, HYPLIPID, ALZHD, CEBVD,
+                 ETOHAB, SUBSTAB, EDHIV, OSA, OSTPRSIS, HPE]
+  no_chronic_col: NOCHRON        # 1 = aucune, 2 = item entièrement vide
+  # Libellés Stata tronqués à 80 caractères : texte complet recopié de doc22-ed-508.pdf.
+  label_overrides:
+    CAD: "Coronary artery disease (CAD), ischemic heart disease (IHD), or history of myocardial infarction (MI)"
+    CEBVD: "Cerebrovascular disease/history of stroke (CVA) or transient ischemic attack (TIA)"
+    HPE: "History of pulmonary embolism (PE) or deep vein thrombosis (DVT), or venous thromboembolism (VTE)"
+  label_prefix_to_strip: "Does patient have:"
+
+  diag_cols: [DIAG1, DIAG2, DIAG3, DIAG4, DIAG5]
+  prdiag_cols: [PRDIAG1, PRDIAG2, PRDIAG3, PRDIAG4, PRDIAG5]   # 1 = probable/questionable/rule-out
+  diag_skip_prefix: ZZZ          # codes administratifs ; ZZZ2 = « Transferred to another facility »
+
+  exam_flag_col: DIAGSCRN        # 0 = aucun, 1 = oui, 2 = item vide
+  exam_cols: [ABG, BAC, BMP, BNP, BUNCREAT, CARDENZ, CBC, CMP, BLOODCX, TRTCX,
+              URINECX, WOUNDCX, OTHCX, DDIMER, ELECTROL, GLUCOSE, LACTATE, LFT,
+              PTTINR, OTHERBLD, CARDMON, EKG, HIVTEST, FLUTEST, PREGTEST,
+              TOXSCREN, URINE, OTHRTEST, ANYIMAGE, XRAY, CATSCAN, CTAB, CTCHEST,
+              CTHEAD, CTOTHER, CTUNK, MRI, ULTRASND, OTHIMAGE, COVIDTEST,
+              COVIDANTIBODY]
+
+  # Contrôle anti-fuite : motifs (regex, insensibles à la casse) interdits dans le texte.
+  forbidden_patterns: ['\badmi(t|ssion)', 'hospitali[sz]', '\btransfer', 'disposition',
+                       'observation unit', 'discharged', 'left without', 'against medical advice',
+                       'dead on arrival', 'died']
